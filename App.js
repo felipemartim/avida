@@ -1,86 +1,40 @@
+import 'react-native-gesture-handler';
 import React from 'react';
 import { StyleSheet, Text, View, Button } from 'react-native';
-import ViewPager from '@react-native-community/viewpager';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import QuestionsScreen from './QuestionsScreen'
+import { questions } from './questions'
+
+const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 
 
-export default class App extends React.Component {
+function SettingsScreen() {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>Settings!</Text>
+    </View>
+  );
+}
 
-  constructor(props) {
-    super(props);
+export default function App() {
 
-    this.state = {
-      page: 0,
-      quiz: [
-        { question: "Você gosta mais de batata ou de estudar?"},
-        { question: "Você curte birita?"},
-        { question: "Você curte bola gato?"},
-        { question: "Você já usou drogas pesadas?"},
-        { question: "Você ouve roque paulera?"},
-        { question: "Você sai pra night?"},
-      ],
-    };
-
-    this.viewPager = React.createRef();
-  }
-
-  onPageSelected = (e) => {
-    this.setState({ page: e.nativeEvent.position });
-  };
-
-  move = (delta) => {
-    const page = this.state.page + delta;
-    this.go(page);
-  };
-
-  go = (page) => {
-    this.viewPager.current.setPage(page);
-  };
-
-  renderPage(item, index) {
-    return (
-      <View style={styles.page} key={index}>
-        <Text style={styles.question}>{item.question}</Text>
-        { index < this.state.quiz.length -1 ? 
-          <Button title="Seguir" onPress={() => this.move(1)}/>
-          : null
-        }
-        { index > 0 ? 
-          <Button title="Voltar" onPress={() => this.move(-1)}/>
-          : null
-        }
-      </View>
-    );
-  }
-
-  render(){
-    return (
-      <View style={styles.container}>
-        <ViewPager 
-          ref={this.viewPager} 
-          style={styles.viewPager} 
-          initialPage={0} 
-          scrollEnabled={false}
-          onPageSelected={this.onPageSelected}
-        >
-        {this.state.quiz.map((q, i) => this.renderPage(q, i))}
-        </ViewPager>
-      </View>
-    )
-  }
+  return (
+    <NavigationContainer>
+      <Tab.Navigator>
+        <Tab.Screen name="Questionário">
+          {() => <QuestionsScreen questions={questions} />}
+        </Tab.Screen>
+        <Tab.Screen name="Settings" component={SettingsScreen} />
+      </Tab.Navigator>
+    </NavigationContainer>
+  )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  viewPager: {
-    flex: 1,
-  },
-  page: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  question: {
-    fontSize: 30,
-  }
 });
