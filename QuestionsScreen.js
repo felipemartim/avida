@@ -1,12 +1,36 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, Button } from 'react-native';
+import React, { useState, useCallback } from 'react';
 import ViewPager from '@react-native-community/viewpager';
+import { StyleSheet, Platform, StatusBar } from 'react-native';
+import SafeAreaView from 'react-native-safe-area-view';
+import { Icon, Layout, Text, TopNavigation, TopNavigationAction, Button, CheckBox } from '@ui-kitten/components';
+import { depressao } from './depressao'
+import { diabetes } from './diabetes'
 
-export default function Questions({ questions }) {
+const BackIcon = (style) => (
+    <Icon {...style} name='arrow-back' />
+);
+
+export default function Questions({ type, navigation }) {
 
     const [ page, setPage ] = useState(0);
 
     const viewPager = React.createRef();
+
+    let questions = []
+    switch(type) {
+        case 'depressao': questions = depressao;
+        break;
+        case 'diabetes': questions = diabetes;
+        break;
+    }
+
+    const navigateBack = () => (
+        page == 0 ? navigation.pop() : move(-1)
+    );
+
+    const BackAction = () => (
+        <TopNavigationAction icon={BackIcon} onPress={navigateBack}/>
+    );
 
     onPageSelected = (e) => {
         setPage(e.nativeEvent.position);
@@ -17,27 +41,67 @@ export default function Questions({ questions }) {
     };
 
     go = (page) => {
-        viewPager.current.setPage(page);
+        viewPager && viewPager.current && viewPager.current.setPage(page);
+    };
+
+    renderAnswerButton = (item, index) => {
+        return (
+            <Button 
+                style={styles.button}
+                key={index} 
+                onPress={() => move(1)} 
+                appearance='outline' 
+                status='basic'>
+                {item}
+            </Button>
+        )
+    }
+
+    const useCheckboxChanges = (initialCheck = false) => {
+        const [checked, setChecked] = useState(initialCheck);
+      
+        const onChange = (isChecked) => {
+          setChecked(isChecked);
+        };
+      
+        return {
+          checked,
+          onChange,
+        };
+      };
+
+    const getCheckboxes = (question) => {
+        
+        return question.answers.map((answer, i) => (
+            <Layout key={i+100} style={styles.checkboxContainer}>
+                <CheckBox
+                    key={i}
+                    style={styles.checkbox}
+                    status='basic'
+                    text={answer}
+                    {...useCheckboxChanges()}
+            /> 
+            </Layout>
+        ));
     };
 
     renderPage = (item, index) => {
         return (
-            <View style={styles.page} key={index}>
-            <Text style={styles.question}>{item.question}</Text>
-            { index < questions.length -1 ? 
-                <Button title="Seguir" onPress={() => move(1)}/>
-                : null
-            }
-            { index > 0 ? 
-                <Button title="Voltar" onPress={() => move(-1)}/>
-                : null
-            }
-            </View>
+            <Layout style={styles.page} key={index}>
+                <Text style={styles.question} category='h3'>{item.question}</Text>
+                <Layout style={styles.buttonsContainer}>
+                    {item.type == 'multiple' ? 
+                        getCheckboxes(item) : item.answers.map((a, i) => renderAnswerButton(a, i))
+                    }
+                </Layout>
+                    {item.type == 'multiple' ? <Button onPress={() => move(1)}>Prosseguir</Button> : null}
+            </Layout>
         );
-    }
+    }   
     
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.safeContainer}>
+            <TopNavigation alignment='center' leftControl={BackAction()}/>
             <ViewPager 
                 ref={viewPager} 
                 style={styles.viewPager} 
@@ -47,24 +111,40 @@ export default function Questions({ questions }) {
                 >
                 {questions.map((q, i) => renderPage(q, i))}
             </ViewPager>
-        </View>
+        </SafeAreaView>
     )
 }
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
+    safeContainer: {
+        flex: 1,
+        backgroundColor: "white",
+        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     viewPager: {
       flex: 1,
     },
+    buttonsContainer: {
+        // flexDirection: 'row',
+        // flexWrap: 'wrap',
+    },
     page: {
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: 'space-around',
+    //   alignItems: 'center',
     },
     question: {
-      fontSize: 30,
-      margin: 30,
+      margin: 25,
+    },
+    button: {
+        margin: 3,
+        textAlign: 'right',
+    },
+    checkbox: {
+        margin: 6,
+        marginLeft: 20,
+    },
+    checkboxContainer: {
+        // borderWidth: 1,
     }
   });
   

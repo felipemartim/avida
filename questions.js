@@ -24,6 +24,10 @@ const questions = [
       answers: ["Sim", "Não"],
       weight: [1, 0],
     },
+    { question: "Você sai pra night?", 
+      answers: ["Sim", "Não", "Talvez"],
+      weight: [1, 0, 0],
+    },
   ]
   
   export { questions }
